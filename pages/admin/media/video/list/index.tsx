@@ -1,11 +1,12 @@
 import React from 'react';
 import { DownloadOutlined, EyeOutlined, RocketOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Popconfirm, Space } from 'antd';
-import { AuthDelBtn, BaseBizTable, BaseDrawer, BaseTableUtils, clearForm, FaberTable, FaHref, FaUtils, useDelete, useDeleteByQuery, useExport, useTableQueryParams } from '@fa/ui';
+import { Button, Form, Input, Popconfirm, Space, Tooltip } from 'antd';
+import { AuthDelBtn, BaseBizTable, BaseDrawer, BaseTableUtils, clearForm, FaberTable, FaHref, FaUtils, fileSaveApi, useDelete, useDeleteByQuery, useExport, useTableQueryParams } from '@fa/ui';
 import { mediaVideoApi as api } from '@/services';
 import { Media } from '@/types';
 import MediaVideoModal from './modal/MediaVideoModal';
 import MediaVideoView from './cube/MediaVideoView';
+import { VideoPlainModal } from '@/components';
 
 const serviceName = '媒体-视频信息表';
 const biz = 'media_video';
@@ -33,13 +34,47 @@ export default function MediaVideoList() {
       // BaseTableUtils.genSimpleSorterColumn('业务类型（如 post、moment、course 等）', 'businessType', 100, sorter),
       // BaseTableUtils.genSimpleSorterColumn('原视频', 'originFileId', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('封面', 'coverFileId', 100, sorter),
-      BaseTableUtils.genSimpleSorterColumn('文件名', 'originFilename', 100, sorter),
+      {
+        ...BaseTableUtils.genSimpleSorterColumn('文件名', 'originFilename', 100, sorter),
+        render: (_, r) => {
+          return (
+            <VideoPlainModal url={fileSaveApi.genLocalGetFile(r.originFileId)}>
+              <a>{r.originFilename}</a>
+            </VideoPlainModal>
+          );
+        }
+      },
       BaseTableUtils.genSimpleSorterColumn('宽度', 'originWidth', 80, sorter),
       BaseTableUtils.genSimpleSorterColumn('高度', 'originHeight', 80, sorter),
       BaseTableUtils.genSimpleSorterColumn('码率', 'originBitrate', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('时长', 'originDuration', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('原大小', 'originSizeMb', 100, sorter),
-      BaseTableUtils.genSimpleSorterColumn('720p文件', 'trans720pFileId', 100, sorter),
+      {
+        ...BaseTableUtils.genSimpleSorterColumn('720p文件', 'trans720pFileId', 100, sorter),
+        render: (_, r) => {
+          if (r.trans720pStatus === 0) {
+            return '未开始';
+          } else if (r.trans720pStatus === 1) {
+            return `转码中(${r.trans720pProgress}%)`;
+          } else if (r.trans720pStatus === 3) {
+            return (
+              <Tooltip title={r.trans720pMessage}>
+                <span style={{ color: 'red', cursor: 'pointer' }}>失败</span>
+              </Tooltip>
+            );
+          } else if (r.trans720pStatus === 4) {
+            return '已取消';
+          }
+          if(!r.trans720pFileId) {
+            return '-';
+          }
+          return (
+            <VideoPlainModal url={fileSaveApi.genLocalGetFile(r.trans720pFileId)}>
+              <a>查看</a>
+            </VideoPlainModal>
+          )
+        }
+      },
       BaseTableUtils.genSimpleSorterColumn('720p大小', 'trans720pSizeMb', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('预览视频', 'previewFileId', 100, sorter),
       // BaseTableUtils.genSimpleSorterColumn('预览视频时长', 'previewDuration', 100, sorter),
@@ -78,7 +113,7 @@ export default function MediaVideoList() {
                 fetchPageList();
               })
             }}>
-              <FaHref text='压缩' icon={<RocketOutlined />} />
+              <a className='fa-link-btn'><RocketOutlined />压缩</a>
             </Popconfirm>
             {/* <MediaVideoModal editBtn title={`编辑${serviceName}信息`} record={r} fetchFinish={fetchPageList} /> */}
             <AuthDelBtn handleDelete={() => handleDelete(r.id)} />

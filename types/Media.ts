@@ -30,6 +30,16 @@ namespace Media {
     trans720pFileId: string;
     /** 720p视频大小（MB） */
     trans720pSizeMb: number;
+    /** 720p转码进度百分比（0-100，0表示未开始，100表示完成） */
+    trans720pProgress: number;
+    /** 720p转码详细状态：0=未开始,1=转码中,2=成功,3=失败,4=已取消 */
+    trans720pStatus: number;
+    /** 720p转码失败或警告的详细信息（如错误日志） */
+    trans720pMessage: string;
+    /** 720p转码开始时间 */
+    trans720pStartTime: string;
+    /** 720p转码结束时间 */
+    trans720pEndTime: string;
     /** 封面图文件ID -> base_file_save.id */
     coverFileId: string;
     /** 预览视频文件ID -> base_file_save.id */
