@@ -1,6 +1,6 @@
 import React from 'react';
 import { DownloadOutlined, EyeOutlined, RocketOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Popconfirm, Space, Tooltip } from 'antd';
+import { Button, Form, Image, Input, Popconfirm, Space, Tooltip } from 'antd';
 import { AuthDelBtn, BaseBizTable, BaseDrawer, BaseTableUtils, clearForm, FaberTable, FaHref, FaUtils, fileSaveApi, useDelete, useDeleteByQuery, useExport, useTableQueryParams } from '@fa/ui';
 import { mediaVideoApi as api } from '@/services';
 import { Media } from '@/types';
@@ -33,9 +33,23 @@ export default function MediaVideoList() {
       // BaseTableUtils.genSimpleSorterColumn('关联业务ID（如文章ID、动态ID、课程ID等）', 'businessId', 100, sorter),
       // BaseTableUtils.genSimpleSorterColumn('业务类型（如 post、moment、course 等）', 'businessType', 100, sorter),
       // BaseTableUtils.genSimpleSorterColumn('原视频', 'originFileId', 100, sorter),
-      BaseTableUtils.genSimpleSorterColumn('封面', 'coverFileId', 100, sorter),
       {
-        ...BaseTableUtils.genSimpleSorterColumn('文件名', 'originFilename', 100, sorter),
+        ...BaseTableUtils.genSimpleSorterColumn('封面', 'coverFileId', 100, sorter),
+        render: (_, r) => {
+          if(!r.coverFileId) {
+            return '-';
+          }
+          return (
+            <Image
+              src={fileSaveApi.genLocalGetFile(r.coverFileId)}
+              alt={r.originFilename}
+              style={{ width: 80, height: 'auto', borderRadius: 4, objectFit: 'cover' }}
+            />
+          )
+        }
+      },
+      {
+        ...BaseTableUtils.genSimpleSorterColumn('文件名', 'originFilename', 200, sorter),
         render: (_, r) => {
           return (
             <VideoPlainModal url={fileSaveApi.genLocalGetFile(r.originFileId)}>

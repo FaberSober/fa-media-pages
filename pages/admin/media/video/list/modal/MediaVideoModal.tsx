@@ -11,7 +11,7 @@ import { useState } from 'react';
  * 媒体-视频信息表实体新增、编辑弹框
  */
 export default function MediaVideoModal({ children, title, record, fetchFinish, ...props }: CommonModalProps<Media.MediaVideo>) {
-  const loading = useApiLoading([ api.getUrl('save'), api.getUrl('update')]);
+  const loading = useApiLoading([ api.getUrl('create')]);
   const [form] = Form.useForm();
 
   const [open, setOpen] = useState(false);
