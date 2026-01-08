@@ -7,6 +7,7 @@ import { Media } from '@/types';
 import MediaVideoModal from './modal/MediaVideoModal';
 import MediaVideoView from './cube/MediaVideoView';
 import { VideoPlainModal } from '@/components';
+import useBus from 'use-bus';
 
 const serviceName = '媒体-视频信息表';
 const biz = 'media_video';
@@ -17,12 +18,27 @@ const biz = 'media_video';
 export default function MediaVideoList() {
   const [form] = Form.useForm();
 
-  const { queryParams, setFormValues, handleTableChange, setSceneId, setConditionList, fetchPageList, loading, list, paginationProps } =
+  const { queryParams, setFormValues, handleTableChange, setSceneId, setConditionList, fetchPageList, loading, list, setList, paginationProps } =
           useTableQueryParams<Media.MediaVideo>(api.minePage, {}, serviceName)
 
   const [handleDelete] = useDelete<string>(api.remove, fetchPageList, serviceName)
   const [exporting, fetchExportExcel] = useExport(api.exportExcel, queryParams)
   const [_, deleteByQuery] = useDeleteByQuery(api.removeByQuery, queryParams, fetchPageList);
+
+  useBus(
+    ['@@ws/RECEIVE/MEDIA_COMPRESS_VIDEO'],
+    ({ type, channel, payload }) => {
+        console.log(type, channel, payload);
+        const newList = list.map(i => {
+          if (i.id === payload.id) {
+            return { ...i, trans720pProgress: payload.trans720pProgress, trans720pStatus: payload.trans720pStatus, trans720pFileId: payload.trans720pFileId }
+          }
+          return i;
+        })
+        setList(newList)
+    },
+    [setList],
+  )
 
   /** 生成表格字段List */
   function genColumns() {
@@ -90,7 +106,19 @@ export default function MediaVideoList() {
         }
       },
       BaseTableUtils.genSimpleSorterColumn('720p大小', 'trans720pSizeMb', 100, sorter),
-      BaseTableUtils.genSimpleSorterColumn('预览视频', 'previewFileId', 100, sorter),
+      {
+        ...BaseTableUtils.genSimpleSorterColumn('预览视频', 'previewFileId', 100, sorter),
+        render: (_, r) => {
+          if(!r.previewFileId) {
+            return '-';
+          }
+          return (
+            <VideoPlainModal url={fileSaveApi.genLocalGetFile(r.previewFileId)}>
+              <a>查看</a>
+            </VideoPlainModal>
+          )
+        }
+      },
       // BaseTableUtils.genSimpleSorterColumn('预览视频时长', 'previewDuration', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('视频格式', 'format', 100, sorter),
       BaseTableUtils.genSimpleSorterColumn('视频编码', 'codecVideo', 100, sorter),
