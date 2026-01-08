@@ -18,7 +18,7 @@ export default function MediaVideoList() {
   const [form] = Form.useForm();
 
   const { queryParams, setFormValues, handleTableChange, setSceneId, setConditionList, fetchPageList, loading, list, paginationProps } =
-          useTableQueryParams<Media.MediaVideo>(api.page, {}, serviceName)
+          useTableQueryParams<Media.MediaVideo>(api.minePage, {}, serviceName)
 
   const [handleDelete] = useDelete<string>(api.remove, fetchPageList, serviceName)
   const [exporting, fetchExportExcel] = useExport(api.exportExcel, queryParams)
